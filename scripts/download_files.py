@@ -55,17 +55,25 @@ def delete_file(fname):
 if __name__ == '__main__':
 
     dfs = []
+    with open('failures.csv', "w+") as fh:
+        fh.write('Failures\n')
     for bricknumber in np.arange(1, 24)[::-1]:
-        website = 'http://archive.stsci.edu/pub/hlsp/phat/brick{}/'.format(bricknumber)
-        link = get_link(website)
-        url, fname = get_names(link)
-        print('will get file from url {0}, and save it as {1}'.format(url, fname))
-        download_file(url, fname)
-        x = get_corners(fname)
-        x['brick'] = bricknumber * 10 + np.arange(len(x))
-        dfs.append(x)
-        pd.concat(dfs).to_csv('partial_corners.csv', index=False)
-        os.remove(fname)
+        try:
+            website = 'http://archive.stsci.edu/pub/hlsp/phat/brick{}/'.format(bricknumber)
+            link = get_link(website)
+            url, fname = get_names(link)
+            print('will get file from url {0}, and save it as {1}'.format(url, fname))
+            download_file(url, fname)
+            x = get_corners(fname)
+            x['brick'] = bricknumber * 10 + np.arange(len(x))
+            dfs.append(x)
+            pd.concat(dfs).to_csv('partial_corners.csv', index=False)
+            os.remove(fname)
+        except:
+            with open('failures.csv', "a+") as fh:
+                fh.write('{}\n'.format(bricknumber))
+
+            
     df = pd.concat(dfs)
     df.to_csv('corners.csv', index=False)
     os.remove('partial_corners.csv')
